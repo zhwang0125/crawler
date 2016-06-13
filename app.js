@@ -31,6 +31,17 @@ app.get('/articleList', function (req, res) {
     })
 });
 
+// 获取文章内容
+app.get('/articleDetail', function (req, res) {
+    read.articleDetail('http://blog.sina.com.cn/s/blog_69e72a420102w0tg.html', function (err, list) {
+        if (err) {
+            return res.json(err);
+        }
+
+        res.json(list);
+    })
+});
+
 app.listen(config.port, function (err) {
     if (err) {
         return console.error(err);

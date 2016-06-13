@@ -52,17 +52,58 @@ exports.articleList = function (url, cb) {
         $('.SG_connBody .blog_title_h').each(function () {
             var $me = $(this);
             var title = $me.find('.blog_title a');
-            var time = $me.find('time SG_txtc');
+            var time = $me.find('.time');
 
             var item = {
                 title: title.text(),
-                url: title.attr('href'),
-                time: time.text()
+                url: title.attr('href')
             };
-            console.log(item);
-            list.push(item);
+
+            var t = time.text();
+            if (t.indexOf('(') > -1) {
+                t = t.replace('(', '');
+            }
+            if (t.indexOf(')') > -1) {
+                t = t.replace(')', '');
+            }
+            item.time = t;
+
+            // 取出文章ID
+            var s = item.url.match(/blog_([a-zA-Z0-9]+)\.html/);
+            if (Array.isArray(s)) {
+                item.id = s[1];
+                list.push(item);
+            }
         });
 
         cb(null, list);
+    });
+};
+
+/**
+ * 获取博文内容
+ *
+ * @param url
+ * @param cb
+ */
+exports.articleDetail = function (url, cb) {
+    request(url, function (err, res) {
+        if (err) {
+            return cb(err);
+        }
+
+        var $ = cheerio.load(res.body.toString());
+
+        var tags = [];
+        $('.articalTag .blog_tag h3').each(function () {
+            var $me = $(this);
+            var tag = $me.find('a').text();
+            if (tag) {
+                tags.push(tag.trim());
+            }
+        });
+
+        var content = $('.articalContent').html().trim();
+        cb(null, {tags: tags, content: content});
     });
 };
