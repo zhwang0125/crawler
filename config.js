@@ -1,5 +1,5 @@
 // 端口
-exports.port = '3000';
+exports.port = '3001';
 
 // 博客配置
 exports.url = 'http://blog.sina.com.cn/u/1776757314';
@@ -12,3 +12,6 @@ exports.db = {
     user: 'root',
     password: ''
 };
+
+// 定时任务, 每分钟
+exports.cron = '* * * * *';

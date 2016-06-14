@@ -1,3 +1,4 @@
+var cronJob = require('cron').CronJob;
 var path = require('path');
 var config = require('./config');
 var express = require('express');
@@ -50,7 +51,15 @@ app.listen(config.port, function (err) {
     console.log('server success port ' + config.port);
 });
 
+// 定时任务
+var job = new cronJob(config.cron, function () {
+    // TODO: 子线程执行
+    console.log('======> 执行定时任务');
+});
+job.start();
+
 // 捕捉异常
 process.on('uncaughtException', function (err) {
     console.error('uncaughtException: %s', err);
 });
+
