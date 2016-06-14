@@ -75,3 +75,53 @@ exports.saveArticleList = function (class_id, list, cb) {
     }, cb);
 };
 
+/**
+ * 保存文章标签
+ *
+ * @param id
+ * @param tags
+ * @param cb
+ */
+exports.saveArticleTags = function (id, tags, cb) {
+    db.query('delete from `article_tag` where id=?', [id], function (err) {
+        if (err) {
+            return cb(err);
+        }
+
+        if (tags.length > 0) {
+            var values = tags.map(function (tag) {
+                return '(' + db.escape(id) + ', ' + db.escape(tag) + ')';
+            }).join(', ');
+
+            db.query('insert into `article_tag`(`id`, `tag`) values ' + values, cb);
+        }
+        else {
+            db(null);
+        }
+    });
+};
+
+/**
+ * 保存文章内容
+ *
+ * @param id
+ * @param tags
+ * @param content
+ * @param cb
+ */
+exports.saveArticleDetail = function (id, tags, content, cb) {
+    // 检查文章是否存在
+    db.query('select `id` from `article_detail` where `id`=?', [id], function (err, data) {
+        if (err) return callback(err);
+
+        tags = tags.join(' ');
+        if (Array.isArray(data) && data.length >= 1) {
+            // 更新文章
+            db.query('update `article_detail` set `tags`=?, `content`=? where `id`=?', [tags, content, id], callback);
+        } else {
+            // 添加文章
+            db.query('insert into `article_detail`(`id`, `tags`, `content`) values (?, ?, ?)', [id, tags, content], callback);
+        }
+    });
+};
+
