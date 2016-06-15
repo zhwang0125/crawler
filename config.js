@@ -13,5 +13,5 @@ exports.db = {
     password: ''
 };
 
-// 定时任务, 每分钟
-exports.cron = '* * * * *';
+// 定时任务, 每30分钟
+exports.cron = '* */30 * * *';

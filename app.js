@@ -1,47 +1,16 @@
 var cronJob = require('cron').CronJob;
+var spawn = require('child_process').spawn;
 var path = require('path');
 var config = require('./config');
 var express = require('express');
 var app = express();
 
 var read = require('./update/read');
+var save = require('./update/save');
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use('/public', express.static(path.join(__dirname, 'public')));
-
-// 获取分类列表
-app.get('/classList', function (req, res) {
-    read.classList(config.url, function (err, list) {
-        if (err) {
-            return res.json(err);
-        }
-
-        res.json(list);
-    })
-});
-
-// 获取文章列表
-app.get('/articleList', function (req, res) {
-    read.articleList(config.url, function (err, list) {
-        if (err) {
-            return res.json(err);
-        }
-
-        res.json(list);
-    })
-});
-
-// 获取文章内容
-app.get('/articleDetail', function (req, res) {
-    read.articleDetail('http://blog.sina.com.cn/s/blog_69e72a420102w0tg.html', function (err, list) {
-        if (err) {
-            return res.json(err);
-        }
-
-        res.json(list);
-    })
-});
 
 app.listen(config.port, function (err) {
     if (err) {
@@ -53,8 +22,12 @@ app.listen(config.port, function (err) {
 
 // 定时任务
 var job = new cronJob(config.cron, function () {
-    // TODO: 子线程执行
-    console.log('======> 执行定时任务');
+    var update = spawn(process.execPath, [path.resolve(__dirname, 'update/all.js')]);
+    update.stdout.pipe(process.stdout);
+    update.stderr.pipe(process.stderr);
+    update.on('close', function (code) {
+        console.log('更新任务结束，代码=%d', code);
+    });
 });
 job.start();
 

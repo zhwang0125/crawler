@@ -16,7 +16,7 @@ function handleError(err) {
 
 // 连接数据库
 function connect() {
-    db = mysql.createConnection(config);
+    db = mysql.createConnection(config.db);
     db.connect(handleError);
     db.on('error', handleError);
 }
@@ -37,7 +37,7 @@ exports.saveClassList = function (list, cb) {
             }
 
             if (Array.isArray(data) && data.length >= 1) {
-                db.query('update `class_list` set `name`=?, `url`=? where `id`=?', [item.id], next);
+                db.query('update `class_list` set `name`=?, `url`=? where `id`=?', [item.name, item.url, item.id], next);
             }
             else {
                 db.query('insert into `class_list`(`id`, `name`, `url`) values (?, ?, ?)', [item.id, item.name, item.url], next);
@@ -96,7 +96,7 @@ exports.saveArticleTags = function (id, tags, cb) {
             db.query('insert into `article_tag`(`id`, `tag`) values ' + values, cb);
         }
         else {
-            db(null);
+            cb(null);
         }
     });
 };
@@ -117,11 +117,37 @@ exports.saveArticleDetail = function (id, tags, content, cb) {
         tags = tags.join(' ');
         if (Array.isArray(data) && data.length >= 1) {
             // 更新文章
-            db.query('update `article_detail` set `tags`=?, `content`=? where `id`=?', [tags, content, id], callback);
+            db.query('update `article_detail` set `tags`=?, `content`=? where `id`=?', [tags, content, id], cb);
         } else {
             // 添加文章
-            db.query('insert into `article_detail`(`id`, `tags`, `content`) values (?, ?, ?)', [id, tags, content], callback);
+            db.query('insert into `article_detail`(`id`, `tags`, `content`) values (?, ?, ?)', [id, tags, content], cb);
         }
     });
 };
 
+/**
+ * 检查文章是否存在
+ *
+ * @param id
+ * @param cb
+ */
+exports.isArticleExists = function (id, cb) {
+    db.query('select * from `article_detail` where id=?', [id], function (err, data) {
+        if (err) {
+            cb(err);
+        }
+
+        cb(err, Array.isArray(data) && data.length > 0);
+    });
+};
+
+/**
+ * 保存文章分类中文章的数量
+ *
+ * @param class_id
+ * @param count
+ * @param cb
+ */
+exports.saveArticleCount = function (class_id, count, cb) {
+    db.query('update `class_list` set count=? where id=?', [count, class_id], cb);
+};
